@@ -27,8 +27,8 @@ src/restaurant_reviews/
 │   ├── models.py         # ORM models for User, Restaurant, Review
 │   ├── crud.py           # All database operations
 │   ├── schema.sql        # PostgreSQL DDL (tables, indexes, trigger)
-│   ├── setup.sql         # Grant statements for the main database user
-│   └── setup_test.sql    # Grant statements for the test database user (includes table ownership for TRUNCATE)
+│   ├── user_setup.sql    # Grant statements for the main database user
+│   └── testuser_setup.sql # Grant statements for the test database user (includes table ownership for TRUNCATE)
 ├── schemas.py            # Pydantic request/response models
 ├── app.py                # FastAPI routes and endpoints
 ├── config.py             # Environment variable management
@@ -57,23 +57,27 @@ source .venv/bin/activate  # Mac/Linux
 ```
 pip install -r requirements.txt
 ```
-4. Copy `.env.example` to `.env` and fill in your database credentials:
+4. Install the package in editable mode:
+```
+pip install -e .
+```
+5. Copy `.env.example` to `.env` and fill in your database credentials:
 ```
 cp .env.example .env
 ```
-5. Create the database, run the schema, and grant permissions:
+6. Create the database, run the schema, and grant permissions:
 ```sql
 CREATE DATABASE restaurant_reviews;
 ```
 Then run `schema.sql` against the database, followed by `user_setup.sql` to grant the required permissions to your database user.
 
-6. (Optional) For running tests, create a test database:
+7. (Optional) For running tests, create a test database:
 ```sql
 CREATE DATABASE restaurant_reviews_test_db;
 ```
 Then run `schema.sql` against the test database, followed by `testuser_setup.sql` to grant the additional permissions required for test cleanup.
 
-7. Start the API server:
+8. Start the API server:
 ```
 uvicorn restaurant_reviews.app:app --reload
 ```
