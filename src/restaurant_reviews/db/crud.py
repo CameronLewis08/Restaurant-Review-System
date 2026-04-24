@@ -9,6 +9,8 @@ from datetime import datetime, timezone
 from restaurant_reviews.db.connection import get_session
 from restaurant_reviews.db.models import User, Review, Restaurant
 
+# User CRUD Operations
+
 def create_user(username: str, email: str, password: str) -> User:
     try:
         with get_session() as session:
@@ -24,6 +26,35 @@ def create_user(username: str, email: str, password: str) -> User:
 
     except IntegrityError:
         raise ValueError("User with that username or email address already exists")
+
+def get_user_by_username(username: str) -> User:
+    with get_session() as session:
+        user = session.execute(select(User).where(User.username == username)).scalars().first()
+        if user is None:
+            raise ValueError("User not found")
+        return user
+    
+def list_users() -> list[User]:
+    with get_session() as session:
+        return session.execute(select(User)).scalars().all()
+    
+def list_review_history(user_id: int) -> list[tuple]:
+    with get_session() as session:
+        results = session.execute(
+            select(
+                Review.user_id,
+                Restaurant.restaurant_name,
+                Review.rating,
+                Review.review_text,
+                Review.created_at
+            )
+            .join(Restaurant, Review.restaurant_id == Restaurant.restaurant_id)
+            .where(Review.user_id == user_id)
+            .order_by(Review.created_at.desc())
+        ).all()
+        return results
+
+# Restaurant CRUD Operations
 
 def create_restaurant(restaurant_name: str, address: str, city: str, state: str) -> Restaurant:
     try:
@@ -58,6 +89,32 @@ def list_restaurants(city: Optional[str] = None, state: Optional[str] = None) ->
             query = query.where(Restaurant.state == state)
         return session.execute(query).scalars().all()
 
+def get_average_rating(restaurant_id: int) -> float:
+    with get_session() as session:
+        avg_rating = session.execute(select(func.round(func.coalesce(func.avg(Review.rating), 0), 1)).where(Review.restaurant_id == restaurant_id)).scalar()
+        return avg_rating 
+    
+def get_restaurant_by_name(restaurant_name: str) -> Restaurant:
+    with get_session() as session:
+        restaurant = session.execute(select(Restaurant).where(Restaurant.restaurant_name == restaurant_name)).scalars().first()
+        if restaurant is None:
+            raise ValueError("Restaurant not found")
+        return restaurant
+    
+def list_average_ratings() -> list[tuple]:
+    with get_session() as session:
+        results = session.execute(
+            select(
+                Restaurant.restaurant_name,
+                func.round(func.coalesce(func.avg(Review.rating), 0), 1)
+            )
+            .join(Review, Restaurant.restaurant_id == Review.restaurant_id, isouter=True)
+            .group_by(Restaurant.restaurant_id)
+        ).all()
+        return results
+
+# Review CRUD Operations
+
 def create_review(user_id: int, restaurant_id: int, rating: float, review_text: Optional[str] = None) -> None:
     try:
         with get_session() as session:
@@ -74,10 +131,17 @@ def create_review(user_id: int, restaurant_id: int, rating: float, review_text: 
     except IntegrityError:
         raise ValueError("You have already reviewed this restaurant")
     
-def get_reviews(restaurant_id: int) -> list[Review]:
+def get_reviews_by_restaurant(restaurant_id: int) -> list[Review]:
     with get_session() as session:
         review_list = session.execute(select(Review).where(Review.restaurant_id == restaurant_id).order_by(Review.created_at.desc())).scalars().all()
         return review_list
+    
+def get_review(user_id: int, restaurant_id: int) -> Review:
+    with get_session() as session:
+        review = session.execute(select(Review).where(Review.user_id == user_id, Review.restaurant_id == restaurant_id)).scalars().first()
+        if review is None:
+            raise ValueError("Review not found")
+        return review
     
 def update_review(user_id: int, restaurant_id: int, rating: Optional[float] = None, review_text: Optional[str] = None) -> None:
     with get_session() as session:
@@ -97,60 +161,11 @@ def delete_review(user_id: int, restaurant_id: int) -> None:
                 raise ValueError("Review not found")
             session.delete(review)
 
-def get_average_rating(restaurant_id: int) -> float:
-    with get_session() as session:
-        avg_rating = session.execute(select(func.round(func.coalesce(func.avg(Review.rating), 0), 1)).where(Review.restaurant_id == restaurant_id)).scalar()
-        return avg_rating    
-    
 def get_review_history(user_id: int) -> list[tuple]:
     with get_session() as session:
         review_history = session.execute(select(Review.rating, Review.review_text, Restaurant.restaurant_name, Review.created_at).join(Restaurant).where(Review.user_id == user_id).order_by(Review.created_at.desc())).all()
         return review_history
     
-def get_user_by_username(username: str) -> User:
-    with get_session() as session:
-        user = session.execute(select(User).where(User.username == username)).scalars().first()
-        if user is None:
-            raise ValueError("User not found")
-        return user
-def get_restaurant_by_name(restaurant_name: str) -> Restaurant:
-    with get_session() as session:
-        restaurant = session.execute(select(Restaurant).where(Restaurant.restaurant_name == restaurant_name)).scalars().first()
-        if restaurant is None:
-            raise ValueError("Restaurant not found")
-        return restaurant
-    
-def list_users() -> list[User]:
-    with get_session() as session:
-        return session.execute(select(User)).scalars().all()
-
 def list_reviews() -> list[Review]:
     with get_session() as session:
         return session.execute(select(Review)).scalars().all()
-    
-def list_average_ratings() -> list[tuple]:
-    with get_session() as session:
-        results = session.execute(
-            select(
-                Restaurant.restaurant_name,
-                func.round(func.coalesce(func.avg(Review.rating), 0), 1)
-            )
-            .join(Review, Restaurant.restaurant_id == Review.restaurant_id, isouter=True)
-            .group_by(Restaurant.restaurant_id)
-        ).all()
-        return results
-
-def list_review_history() -> list[tuple]:
-    with get_session() as session:
-        results = session.execute(
-            select(
-                Review.user_id,
-                Restaurant.restaurant_name,
-                Review.rating,
-                Review.review_text,
-                Review.created_at
-            )
-            .join(Restaurant, Review.restaurant_id == Restaurant.restaurant_id)
-            .order_by(Review.created_at.desc())
-        ).all()
-        return results
