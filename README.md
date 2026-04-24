@@ -2,60 +2,117 @@
 
 ## Project Description
 
-The Restaurant Review System is a relational database application that models a public review platform. Users can create accounts and profiles, browse restaurants, and submit one review per restaurant that includes text and images. The system enforces data integrity through database constraints, ensures reviews remain current through update capabilities, and maintains normalization to prevent data redundancy.
+A fully functional backend REST API for a restaurant review platform. Users can register accounts, browse restaurants, and submit one review per restaurant. The system enforces data integrity through database-level constraints and exposes a documented REST API built with FastAPI.
 
-This project emphasizes real-world database design patterns and is specifically structured to prepare you for data engineering and backend technical interviews, where schema design is a critical evaluation skill.
+Built as a portfolio project to demonstrate real-world backend and database engineering skills including schema design, ORM usage, REST API design, and test-driven development.
 
-## Tools & Architecture
+## Tech Stack
 
-### PostgreSQL
-PostgreSQL serves as the relational database management system (RDBMS) and is responsible for:
-- Storing all structured data (users, restaurants, reviews)
-- Enforcing constraints at the database level (unique constraints, foreign keys, NOT NULL)
-- Managing transactions to ensure data integrity during review updates
-- Providing ACID guarantees for concurrent user access
+| Layer | Technology |
+|---|---|
+| Database | PostgreSQL |
+| ORM | SQLAlchemy 2.0 |
+| API Framework | FastAPI |
+| Server | Uvicorn |
+| Password Hashing | bcrypt |
+| Testing | pytest |
+| Config Management | python-dotenv |
 
-### Python with psycopg2 / SQLAlchemy
-Python acts as the application layer and bridges user interactions with the database:
-- **psycopg2**: A lightweight PostgreSQL adapter for executing raw SQL queries and managing connections
-- **SQLAlchemy**: An ORM (Object-Relational Mapping) tool that abstracts database operations into Python objects, reducing boilerplate and providing a higher-level interface
+## Project Structure
 
-**How They Interact:**
-1. User actions (sign up, create review, update review) are captured at the application level
-2. Python translates these actions into SQL queries (either raw SQL via psycopg2 or ORM operations via SQLAlchemy)
-3. PostgreSQL validates and executes the queries, enforcing all constraints
-4. The database returns results, which Python formats and returns to the user interface
+```
+src/restaurant_reviews/
+├── db/
+│   ├── connection.py     # SQLAlchemy engine and session context manager
+│   ├── models.py         # ORM models for User, Restaurant, Review
+│   ├── crud.py           # All database operations
+│   ├── schema.sql        # PostgreSQL DDL (tables, indexes, trigger)
+│   ├── setup.sql         # Grant statements for the main database user
+│   └── setup_test.sql    # Grant statements for the test database user (includes table ownership for TRUNCATE)
+├── schemas.py            # Pydantic request/response models
+├── app.py                # FastAPI routes and endpoints
+├── config.py             # Environment variable management
+├── main.py               # Seed data runner
+└── seed_data.json        # Sample data for local development
+tests/
+└── test_crud.py          # pytest test suite
+```
 
-## Key Features
+## Setup
 
-- **Schema Design**: Implements a normalized relational schema with users, restaurants, and reviews tables
-- **Constraints**: Enforces one review per user/restaurant pair and maintains referential integrity
-- **Data Integrity**: Update operations preserve consistency and prevent orphaned records
-- **Scalability**: The schema structure supports horizontal scaling and efficient querying
+### Prerequisites
+- Python 3.11+
+- PostgreSQL
 
-## Expected Outcomes
+### Installation
 
-Upon completion, you will have:
+1. Clone the repository
+2. Create and activate a virtual environment:
+```
+python -m venv .venv
+.venv\Scripts\activate  # Windows
+source .venv/bin/activate  # Mac/Linux
+```
+3. Install dependencies:
+```
+pip install -r requirements.txt
+```
+4. Copy `.env.example` to `.env` and fill in your database credentials:
+```
+cp .env.example .env
+```
+5. Create the database, run the schema, and grant permissions:
+```sql
+CREATE DATABASE restaurant_reviews;
+```
+Then run `schema.sql` against the database, followed by `setup.sql` to grant the required permissions to your database user.
 
-1. **A Production-Ready Schema**: A fully normalized database design that demonstrates understanding of:
-   - Table relationships (one-to-many, implicit many-to-many)
-   - Constraint design and enforcement
-   - Data normalization principles (3NF)
+6. (Optional) For running tests, create a test database:
+```sql
+CREATE DATABASE restaurant_reviews_test;
+```
+Then run `schema.sql` against the test database, followed by `setup_test.sql` to grant the additional permissions required for test cleanup.
 
-2. **Working Application Logic**: Python code that:
-   - Connects reliably to PostgreSQL
-   - Handles user registration and authentication workflows
-   - Creates, reads, updates, and deletes reviews with proper error handling
-   - Validates business logic (one review per user/restaurant)
+7. Start the API server:
+```
+uvicorn restaurant_reviews.app:app --reload
+```
 
-3. **Interview-Ready Knowledge**: 
-   - Ability to explain your design decisions in a technical setting
-   - Understanding of why each table and constraint exists
-   - Concrete examples of schema evolution and optimization trade-offs
-   - Real experience debugging data integrity issues
+## API Documentation
 
-4. **Portfolio Evidence**: A complete project demonstrating backend database engineering skills that directly addresses common data engineering technical interview questions.
+Interactive API docs are available at `http://127.0.0.1:8000/docs` when the server is running.
 
-## Why This Matters in 2026
+Full OpenAPI specification is available in `openapi.json` and published on SwaggerHub.
 
-Schema design remains a cornerstone of data engineering and backend interviews. Companies prioritize engineers who can think through data models because poor schema design compounds into technical debt. This project gives you both the practical experience and the narrative to confidently discuss database design with interviewers.
+## API Endpoints
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/users` | Register a new user |
+| GET | `/users/{username}` | Get a user by username |
+| GET | `/users/history/{user_id}` | Get a user's review history |
+| POST | `/restaurants` | Add a new restaurant |
+| GET | `/restaurants` | List restaurants (supports city/state filters + pagination) |
+| GET | `/restaurants/{id}` | Get a restaurant by ID |
+| POST | `/reviews` | Submit a review |
+| GET | `/reviews/{restaurant_id}` | Get reviews for a restaurant (paginated) |
+| GET | `/reviews/{restaurant_id}/average` | Get average rating for a restaurant |
+| PATCH | `/reviews/{user_id}/{restaurant_id}` | Update a review |
+| DELETE | `/reviews/{user_id}/{restaurant_id}` | Delete a review |
+
+## Running Tests
+
+Create a test database and add `TEST_DATABASE_URL` to your `.env`, then:
+
+```
+$env:TESTING="true"; pytest  # Windows
+TESTING=true pytest          # Mac/Linux
+```
+
+## Key Design Decisions
+
+- **Composite primary key on reviews** — `(user_id, restaurant_id)` enforces one review per user per restaurant at the database level
+- **Constraints at the database level** — foreign keys, CHECK constraints, and unique constraints prevent invalid data regardless of how the database is accessed
+- **bcrypt password hashing** — passwords are never stored in plaintext
+- **Session context manager** — all database sessions commit on success and rollback on failure automatically
+- **Pagination** — list endpoints support `limit` and `offset` query parameters
