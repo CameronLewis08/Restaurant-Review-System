@@ -65,13 +65,13 @@ cp .env.example .env
 ```sql
 CREATE DATABASE restaurant_reviews;
 ```
-Then run `schema.sql` against the database, followed by `setup.sql` to grant the required permissions to your database user.
+Then run `schema.sql` against the database, followed by `user_setup.sql` to grant the required permissions to your database user.
 
 6. (Optional) For running tests, create a test database:
 ```sql
 CREATE DATABASE restaurant_reviews_test;
 ```
-Then run `schema.sql` against the test database, followed by `setup_test.sql` to grant the additional permissions required for test cleanup.
+Then run `schema.sql` against the test database, followed by `testuser_setup.sql` to grant the additional permissions required for test cleanup.
 
 7. Start the API server:
 ```
