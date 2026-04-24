@@ -2,7 +2,13 @@ from fastapi import FastAPI, HTTPException
 from restaurant_reviews.db import crud
 from restaurant_reviews.db.models import Review
 from restaurant_reviews.schemas import RestaurantResponse, ReviewResponse, ReviewUpdate, UserCreate, RestaurantCreate, ReviewCreate, UserResponse
-app = FastAPI()
+
+app = FastAPI(
+    title="Restaurant Review System",
+    description="A REST API for managing restaurant reviews",
+    version="1.0.0",
+    servers=[{"url": "http://127.0.0.1:8000"}]
+)
 
 @app.get("/")
 def read_root():
@@ -31,9 +37,9 @@ def get_user(username: str):
         raise HTTPException(status_code=404, detail=str(e))
     
 @app.get("/users/history/{user_id}")
-def get_user_history(user_id: int):
+def get_user_history(user_id: int, limit: int = 10, offset: int = 0):
     try:
-        reviews = crud.get_review_history(user_id)
+        reviews = crud.get_review_history(user_id, limit, offset)
         return [
             {
                 "restaurant_name": r.restaurant_name,
@@ -73,10 +79,8 @@ def get_restaurant(restaurant_id: int):
         raise HTTPException(status_code=404, detail=str(e))
     
 @app.get("/restaurants")
-def list_restaurants(city: str | None = None, state: str | None = None):
-    restaurants = crud.list_restaurants(city, state)
-    return restaurants
-
+def list_restaurants(city: str | None = None, state: str | None = None, limit: int = 10, offset: int = 0):
+    return crud.list_restaurants(city, state, limit, offset)
 
 
 # Review Endpoints
@@ -95,12 +99,12 @@ def create_review(review: ReviewCreate):
         raise HTTPException(status_code=400, detail=str(e))
 
 @app.get("/reviews/{restaurant_id}", response_model=list[ReviewResponse])
-def get_reviews(restaurant_id: int):
+def get_reviews(restaurant_id: int, limit: int = 10, offset: int = 0):
     try:
         restaurant = crud.get_restaurant(restaurant_id)
         if restaurant is None:
             raise HTTPException(status_code=404, detail="Restaurant not found")
-        reviews = crud.get_reviews_by_restaurant(restaurant_id)
+        reviews = crud.get_reviews_by_restaurant(restaurant_id, limit, offset)
         return reviews
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
@@ -112,7 +116,7 @@ def get_average_rating(restaurant_id: int):
         if restaurant is None:
             raise HTTPException(status_code=404, detail="Restaurant not found")
         average_rating = crud.get_average_rating(restaurant_id)
-        return {"average_rating": average_rating}
+        return {"average_rating": float(average_rating)}
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     

@@ -34,25 +34,9 @@ def get_user_by_username(username: str) -> User:
             raise ValueError("User not found")
         return user
     
-def list_users() -> list[User]:
+def list_users(limit: int = 10, offset: int = 0) -> list[User]:
     with get_session() as session:
-        return session.execute(select(User)).scalars().all()
-    
-def list_review_history(user_id: int) -> list[tuple]:
-    with get_session() as session:
-        results = session.execute(
-            select(
-                Review.user_id,
-                Restaurant.restaurant_name,
-                Review.rating,
-                Review.review_text,
-                Review.created_at
-            )
-            .join(Restaurant, Review.restaurant_id == Restaurant.restaurant_id)
-            .where(Review.user_id == user_id)
-            .order_by(Review.created_at.desc())
-        ).all()
-        return results
+        return session.execute(select(User).limit(limit).offset(offset)).scalars().all()
 
 # Restaurant CRUD Operations
 
@@ -80,13 +64,14 @@ def get_restaurant(restaurant_id: int) -> Restaurant:
         else:
             return restaurant
         
-def list_restaurants(city: Optional[str] = None, state: Optional[str] = None) -> list[Restaurant]:
+def list_restaurants(city: Optional[str] = None, state: Optional[str] = None, limit: int = 10, offset: int = 0) -> list[Restaurant]:
     with get_session() as session:
         query = select(Restaurant)
         if city is not None:
             query = query.where(Restaurant.city == city)
         if state is not None:
             query = query.where(Restaurant.state == state)
+        query = query.limit(limit).offset(offset)
         return session.execute(query).scalars().all()
 
 def get_average_rating(restaurant_id: int) -> float:
@@ -115,7 +100,7 @@ def list_average_ratings() -> list[tuple]:
 
 # Review CRUD Operations
 
-def create_review(user_id: int, restaurant_id: int, rating: float, review_text: Optional[str] = None) -> None:
+def create_review(user_id: int, restaurant_id: int, rating: float, review_text: Optional[str] = None) -> Review:
     try:
         with get_session() as session:
             # insert review
@@ -128,12 +113,14 @@ def create_review(user_id: int, restaurant_id: int, rating: float, review_text: 
                 updated_at=datetime.now(timezone.utc)
             )
             session.add(review)
+            session.flush()
+            return review
     except IntegrityError:
         raise ValueError("You have already reviewed this restaurant")
     
-def get_reviews_by_restaurant(restaurant_id: int) -> list[Review]:
+def get_reviews_by_restaurant(restaurant_id: int, limit: int = 10, offset: int = 0) -> list[Review]:
     with get_session() as session:
-        review_list = session.execute(select(Review).where(Review.restaurant_id == restaurant_id).order_by(Review.created_at.desc())).scalars().all()
+        review_list = session.execute(select(Review).where(Review.restaurant_id == restaurant_id).order_by(Review.created_at.desc()).limit(limit).offset(offset)).scalars().all()
         return review_list
     
 def get_review(user_id: int, restaurant_id: int) -> Review:
@@ -155,17 +142,17 @@ def update_review(user_id: int, restaurant_id: int, rating: Optional[float] = No
         review.updated_at = datetime.now(timezone.utc)
 
 def delete_review(user_id: int, restaurant_id: int) -> None:
-        with get_session() as session:
-            review = session.execute(select(Review).where(Review.user_id == user_id, Review.restaurant_id == restaurant_id)).scalars().first()
-            if review is None:
-                raise ValueError("Review not found")
-            session.delete(review)
-
-def get_review_history(user_id: int) -> list[tuple]:
     with get_session() as session:
-        review_history = session.execute(select(Review.rating, Review.review_text, Restaurant.restaurant_name, Review.created_at).join(Restaurant).where(Review.user_id == user_id).order_by(Review.created_at.desc())).all()
+        review = session.execute(select(Review).where(Review.user_id == user_id, Review.restaurant_id == restaurant_id)).scalars().first()
+        if review is None:
+            raise ValueError("Review not found")
+        session.delete(review)
+
+def get_review_history(user_id: int, limit: int = 10, offset: int = 0) -> list[tuple]:
+    with get_session() as session:
+        review_history = session.execute(select(Review.rating, Review.review_text, Restaurant.restaurant_name, Review.created_at).join(Restaurant).where(Review.user_id == user_id).order_by(Review.created_at.desc()).limit(limit).offset(offset)).all()
         return review_history
     
-def list_reviews() -> list[Review]:
+def list_reviews(limit: int = 10, offset: int = 0) -> list[Review]:
     with get_session() as session:
-        return session.execute(select(Review)).scalars().all()
+        return session.execute(select(Review).limit(limit).offset(offset)).scalars().all()
