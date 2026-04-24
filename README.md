@@ -69,7 +69,7 @@ Then run `schema.sql` against the database, followed by `user_setup.sql` to gran
 
 6. (Optional) For running tests, create a test database:
 ```sql
-CREATE DATABASE restaurant_reviews_test;
+CREATE DATABASE restaurant_reviews_test_db;
 ```
 Then run `schema.sql` against the test database, followed by `testuser_setup.sql` to grant the additional permissions required for test cleanup.
 
