@@ -1,4 +1,4 @@
-INSERT INTO users (username, email, password_hash)
+INSERT INTO users (username, email, password)
 VALUES ('testuser', 'test@gmail.com', 'hashedpassword123');
 
 INSERT INTO restaurants (restaurant_name, city, state)

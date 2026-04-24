@@ -5,7 +5,11 @@ from sqlalchemy.orm import sessionmaker
 
 from contextlib import contextmanager
 
-engine = create_engine(DATABASE_URL, pool_size=5, max_overflow=10)
+import os
+from restaurant_reviews.config import DATABASE_URL, TEST_DATABASE_URL
+
+db_url = TEST_DATABASE_URL if os.environ.get("TESTING") else DATABASE_URL
+engine = create_engine(db_url, pool_size=5, max_overflow=10)
 
 SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
 
