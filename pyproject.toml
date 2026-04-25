@@ -14,3 +14,13 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/restaurant_reviews"]
+
+[tool.pytest.ini_options]
+addopts = "--cov=restaurant_reviews --cov-report=term-missing"
+
+[tool.coverage.run]
+omit = [
+    "src/restaurant_reviews/main.py",
+    "src/restaurant_reviews/schemas.py",
+    "src/restaurant_reviews/app.py",
+]
