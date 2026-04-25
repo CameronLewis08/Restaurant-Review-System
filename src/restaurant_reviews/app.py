@@ -93,7 +93,7 @@ def list_restaurants(city: str | None = None, state: str | None = None, limit: i
     return crud.list_restaurants(city, state, limit, offset)
     
 
-# Review Endpoints
+# Review Endpoint
 
 @app.post("/reviews")
 def create_review(review: ReviewCreate):   
