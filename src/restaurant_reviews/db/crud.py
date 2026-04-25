@@ -38,7 +38,7 @@ def list_users(limit: int = 10, offset: int = 0) -> list[User]:
     with get_session() as session:
         return session.execute(select(User).limit(limit).offset(offset)).scalars().all()
 
-# Restaurant CRUD Operations
+# Restaurant CRUD Operation
 
 def create_restaurant(restaurant_name: str, address: str, city: str, state: str) -> Restaurant:
     try:

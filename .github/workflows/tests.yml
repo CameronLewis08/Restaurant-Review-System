@@ -11,9 +11,9 @@ jobs:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_USER: ${{ secrets.DB_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          POSTGRES_DB: ${{ secrets.DB_NAME }}
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: restaurant_reviews_test_db
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -21,6 +21,7 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
+
     env:
       TESTING: "true"
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
