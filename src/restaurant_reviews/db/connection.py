@@ -17,7 +17,7 @@ SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
 def get_session():
     session = SessionLocal()
     try:
-        yield session        # pause here, hand the session to the caller
+        yield session        # pause here, hand the session to the calle
         session.commit()     # resume here after the `with` block finishes
     except Exception:
         session.rollback()   # if anything went wrong, undo everything
