@@ -128,9 +128,11 @@ TESTING=true pytest                                            # Mac/Linux
 To run with coverage:
 
 ```
-$env:TESTING="true"; pytest --cov=restaurant_reviews --cov-report=term-missing   # Windows
-TESTING=true pytest --cov=restaurant_reviews --cov-report=term-missing           # Mac/Linux
+$env:TESTING="true"; pytest   # Windows
+TESTING=true pytest           # Mac/Linux
 ```
+
+Coverage configuration is defined in `pyproject.toml` and runs automatically with every test run. `app.py`, `schemas.py`, and `main.py` are excluded from coverage as they contain no business logic — only the core modules (`crud.py`, `models.py`, `connection.py`, `config.py`) are measured.
 
 ## CI/CD
 
