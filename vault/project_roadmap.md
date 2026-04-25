@@ -148,9 +148,12 @@ Use this file to track your progress through the project. Check off each task as
 
 | Phase | Status |
 |---|---|
-| Phase 1 — Environment Setup | Not started |
-| Phase 2 — Schema Design & DDL | Not started |
-| Phase 3 — Python / DB Connection | Not started |
-| Phase 4 — CRUD Operations & Business Logic | Not started |
+| Phase 1 — Environment Setup | Complete |
+| Phase 2 — Schema Design & DDL | Complete |
+| Phase 3 — Python / DB Connection | Complete |
+| Phase 4 — CRUD Operations & Business Logic | Complete |
+| Phase 5 — REST API (FastAPI) | Complete |
+| Phase 6 — Testing (pytest + coverage) | Complete |
+| Phase 7 — CI/CD (GitHub Actions) | Complete |
 
 Update the status column as you move through phases: `Not started` → `In progress` → `Complete`.

@@ -12,8 +12,9 @@ restaurant_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 restaurant_name varchar(64) NOT NULL,
 city varchar(64) NOT NULL,
 state varchar(2) NOT NULL,
-address varchar(64) UNIQUE NOT NULL,
-created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+address varchar(64) NOT NULL,
+created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+CONSTRAINT uix_restaurant_location UNIQUE (restaurant_name, city, state, address)
 );
 
 CREATE TABLE reviews (
@@ -28,6 +29,7 @@ PRIMARY KEY (user_id, restaurant_id)
 
 CREATE INDEX idx_reviews_user_id ON reviews(user_id);
 CREATE INDEX idx_reviews_restaurant_id ON reviews(restaurant_id);
+CREATE INDEX idx_users_email ON users(email);
 
 CREATE OR REPLACE FUNCTION update_updated_at()
 RETURNS TRIGGER AS $$

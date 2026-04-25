@@ -106,14 +106,42 @@ Full OpenAPI specification is available in `openapi.json` and published on Swagg
 | PATCH | `/reviews/{user_id}/{restaurant_id}` | Update a review |
 | DELETE | `/reviews/{user_id}/{restaurant_id}` | Delete a review |
 
+## Seeding Sample Data
+
+`main.py` loads sample users, restaurants, and reviews from `seed_data.json` into your local database. Run it with:
+
+```
+python -m restaurant_reviews.main
+```
+
+This is useful for local development and manual testing via the `/docs` UI.
+
 ## Running Tests
 
 Create a test database and add `TEST_DATABASE_URL` to your `.env`, then:
 
 ```
-$env:TESTING="true"; pytest  # Windows
-TESTING=true pytest          # Mac/Linux
+$env:TESTING="true"; pytest                                    # Windows
+TESTING=true pytest                                            # Mac/Linux
 ```
+
+To run with coverage:
+
+```
+$env:TESTING="true"; pytest --cov=restaurant_reviews --cov-report=term-missing   # Windows
+TESTING=true pytest --cov=restaurant_reviews --cov-report=term-missing           # Mac/Linux
+```
+
+## CI/CD
+
+A GitHub Actions workflow (`.github/workflows/tests.yml`) runs automatically on every pull request to `main`. It:
+
+- Spins up a fresh PostgreSQL container
+- Installs dependencies and the package
+- Runs `schema.sql` against the test database
+- Runs the full test suite with coverage
+
+Required GitHub repository secrets: `DATABASE_URL`, `TEST_DATABASE_URL`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`.
 
 ## Key Design Decisions
 
@@ -122,3 +150,4 @@ TESTING=true pytest          # Mac/Linux
 - **bcrypt password hashing** — passwords are never stored in plaintext
 - **Session context manager** — all database sessions commit on success and rollback on failure automatically
 - **Pagination** — list endpoints support `limit` and `offset` query parameters
+- **Route ordering** — specific routes (e.g. `/restaurants/search`) are defined before parameterized routes (e.g. `/restaurants/{id}`) to prevent path conflicts in FastAPI
