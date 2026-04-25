@@ -97,8 +97,10 @@ Full OpenAPI specification is available in `openapi.json` and published on Swagg
 | GET | `/users/history/{user_id}` | Get a user's review history |
 | POST | `/restaurants` | Add a new restaurant |
 | GET | `/restaurants` | List restaurants (supports city/state filters + pagination) |
+| GET | `/restaurants/search` | Search for a restaurant by name |
 | GET | `/restaurants/{id}` | Get a restaurant by ID |
 | POST | `/reviews` | Submit a review |
+| GET | `/reviews/list` | List all reviews (paginated) |
 | GET | `/reviews/{restaurant_id}` | Get reviews for a restaurant (paginated) |
 | GET | `/reviews/{restaurant_id}/average` | Get average rating for a restaurant |
 | PATCH | `/reviews/{user_id}/{restaurant_id}` | Update a review |

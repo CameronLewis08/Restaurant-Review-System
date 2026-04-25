@@ -68,6 +68,16 @@ def create_restaurant(restaurant: RestaurantCreate):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+@app.get("/restaurants/search")
+def search_restaurants(name: str):
+    try:
+        restaurant = crud.get_restaurant_by_name(name)
+        if restaurant is None:
+            raise HTTPException(status_code=404, detail="Restaurant not found")
+        return restaurant
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
 @app.get("/restaurants/{restaurant_id}", response_model=RestaurantResponse)
 def get_restaurant(restaurant_id: int):
     try:
@@ -77,11 +87,11 @@ def get_restaurant(restaurant_id: int):
         return restaurant
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
-    
+
 @app.get("/restaurants")
 def list_restaurants(city: str | None = None, state: str | None = None, limit: int = 10, offset: int = 0):
     return crud.list_restaurants(city, state, limit, offset)
-
+    
 
 # Review Endpoints
 
@@ -95,6 +105,14 @@ def create_review(review: ReviewCreate):
             review_text=review.review_text
         )
         return {"message": "Review created successfully"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
+@app.get("/reviews/list", response_model=list[ReviewResponse])
+def list_reviews(limit: int = 10, offset: int = 0):
+    try:
+        reviews = crud.list_reviews(limit, offset)
+        return reviews
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
