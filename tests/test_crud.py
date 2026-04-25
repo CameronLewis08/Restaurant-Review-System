@@ -132,6 +132,48 @@ def test_list_restaurants():
     assert any(r.restaurant_name == "Restaurant A" for r in restaurants)
     assert any(r.restaurant_name == "Restaurant B" for r in restaurants)
 
+def test_list_restaurants_with_filters():
+    crud.create_restaurant("Filtered Restaurant", "789 Filter St", "Filterville", "FV")
+    restaurants = crud.list_restaurants(city="Filterville")
+    assert len(restaurants) >= 1
+    assert any(r.restaurant_name == "Filtered Restaurant" for r in restaurants)
+    restaurants = crud.list_restaurants(state="FV")
+    assert len(restaurants) >= 1
+    assert any(r.restaurant_name == "Filtered Restaurant" for r in restaurants)
+
+def test_list_restaurants_with_filters_no_match():
+    crud.create_restaurant("Another Restaurant", "101 Another St", "Anotherville", "AV")
+    restaurants = crud.list_restaurants(city="Nonexistent City")
+    assert len(restaurants) == 0
+    restaurants = crud.list_restaurants(state="Nonexistent State")
+    assert len(restaurants) == 0
+
+def test_get_reviews_by_restaurant():
+    restaurant = crud.create_restaurant("Review Test Restaurant", "123 Review St", "Reviewville", "RV")
+    user = crud.create_user("reviewtestuser", "reviewtestuser@example.com", "password123")
+    crud.create_review(user.user_id, restaurant.restaurant_id, 4.0, "Good food!")
+    reviews = crud.get_reviews_by_restaurant(restaurant.restaurant_id)  
+    assert len(reviews) == 1
+    assert reviews[0].rating == 4.0
+    assert reviews[0].review_text == "Good food!"
+
+def test_get_restaurant_by_name():
+    restaurant_name = "Unique Restaurant Name"
+    address = "123 Unique St"
+    city = "Uniqueville"
+    state = "UV"
+    crud.create_restaurant(restaurant_name, address, city, state)
+
+    restaurant = crud.get_restaurant_by_name(restaurant_name)
+    assert restaurant.restaurant_name == restaurant_name
+    assert restaurant.address == address
+    assert restaurant.city == city
+    assert restaurant.state == state
+
+def test_get_restaurant_by_name_not_found():
+    with pytest.raises(ValueError):
+        crud.get_restaurant_by_name("Nonexistent Restaurant Name")
+
 # REVIEW Endpoints
 
 def test_create_review():
@@ -231,3 +273,31 @@ def test_delete_review():
 def test_delete_review_not_found():
     with pytest.raises(ValueError):
         crud.delete_review(9999, 9999)
+        
+def test_list_reviews():
+    restaurant = crud.create_restaurant("List Reviews Restaurant", "123 List St", "Listville", "LV")
+    user1 = crud.create_user("listreviewsuser1", "listreviewsuser1@example.com", "password123")
+    user2 = crud.create_user("listreviewsuser2", "listreviewsuser2@example.com", "password123")
+    crud.create_review(user1.user_id, restaurant.restaurant_id, 4.0, "Good food!")
+    crud.create_review(user2.user_id, restaurant.restaurant_id, 5.0, "Excellent food!")
+    reviews = crud.list_reviews(10, 0)
+    assert len(reviews) == 2
+    ratings = [r.rating for r in reviews]
+    assert 4.0 in ratings
+    assert 5.0 in ratings
+
+def test_list_reviews_pagination():
+    restaurant = crud.create_restaurant("Paginated Reviews Restaurant", "123 Paginate St", "Paginateville", "PV")
+    user1 = crud.create_user("paginatedreviewsuser1", "paginatedreviewsuser1@example.com", "password123")
+    user2 = crud.create_user("paginatedreviewsuser2", "paginatedreviewsuser2@example.com", "password123")
+    crud.create_review(user1.user_id, restaurant.restaurant_id, 4.0, "Good food!")
+    crud.create_review(user2.user_id, restaurant.restaurant_id, 5.0, "Excellent food!")
+    reviews = crud.list_reviews(1, 0)
+    assert len(reviews) == 1
+    reviews = crud.list_reviews(1, 1)
+    assert len(reviews) == 1
+
+def test_list_reviews_no_reviews():
+    reviews = crud.list_reviews(10, 0)
+    assert reviews == []
+
