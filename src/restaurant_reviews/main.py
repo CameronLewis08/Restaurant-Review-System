@@ -81,8 +81,9 @@ def main():
     print("                             REVIEW HISTORY           ")
     print("User_id  Restaurant Name      Rating      Review Text                    Created At")
     print("--------------------------------------------------------------------------------------------------------")
-    for review in crud.list_review_history():
-        print(f"{review.user_id:<10} | {review.restaurant_name:<15} | {float(review.rating):.1f} stars  |  {review.review_text:<40}  |  {str(review.created_at):<50} ")
+    for user in crud.list_users():
+        for review in crud.get_review_history(user.user_id):
+            print(f"{user.user_id:<10} | {review.restaurant_name:<15} | {float(review.rating):.1f} stars  |  {str(review.review_text):<40}  |  {str(review.created_at):<50} ")
 
     print("========================================================================================================================")
 
