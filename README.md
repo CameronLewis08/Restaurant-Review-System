@@ -36,6 +36,9 @@ src/restaurant_reviews/
 └── seed_data.json        # Sample data for local development
 tests/
 └── test_crud.py          # pytest test suite
+.github
+└── workflows
+    └── tests.yml  
 ```
 
 ## Setup
